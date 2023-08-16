@@ -10,3 +10,5 @@ where:
 
 - `<version>` is the [Gravity version](GRAVITY_VERSION)
 - `<tag>` is the current GitHub tag without the "v"
+
+The docker image can be found [here](https://hub.docker.com/r/rzuckerm/gravity).
