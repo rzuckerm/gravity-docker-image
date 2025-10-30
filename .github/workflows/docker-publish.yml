@@ -16,29 +16,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log in to docker
         env:
           DOCKER_USER: rzuckerm
-          DOCKER_TOKEN: ${{secrets.DOCKER_TOKEN}}
+          DOCKER_TOKEN: {% raw %}${{ secrets.DOCKER_TOKEN }}{% endraw %}
         run: echo "${DOCKER_TOKEN}" | docker login -u "${DOCKER_USER}" --password-stdin
 
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-        with:
-          # Optionally strip `v` prefix
-          strip_v: true
+      - name: Write release version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo Version: ${VERSION}
+          echo "VERSION=${VERSION}" >>${GITHUB_ENV}
+          echo "DOCKER_TAG_SUFFIX=-${VERSION}" >>${GITHUB_ENV}
 
       - name: Show tag
-        run: echo "Tag (without v) is ${{steps.tag.outputs.tag}}"
+        run: |
+          echo "Tag (without v) is ${VERSION}"
+          echo "Docker tag suffix is ${DOCKER_TAG_SUFFIX}"
 
-      - name: Build images
-        run: make build DOCKER_TAG_SUFFIX=-${{steps.tag.outputs.tag}}
+      - name: Build regular images
+        run: make build
 
-      - name: Test images
-        run: make test DOCKER_TAG_SUFFIX=-${{steps.tag.outputs.tag}}
+      - name: Test regular images
+        run: make test
 
       - name: Publish images
-        run: make publish DOCKER_TAG_SUFFIX=-${{steps.tag.outputs.tag}}
+        run: make publishx
